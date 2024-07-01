@@ -34,7 +34,11 @@ pub async fn create_task(task: web::Json<Task>) -> impl Responder {
 
     let db = database::get_connection();
     match database::create_task(&db, &task) {
-        Ok(id) => HttpResponse::Created().json(id),
+        Ok(id) => {
+            let mut created_task = task.into_inner();
+            created_task.id = Some(id);
+            HttpResponse::Created().json(created_task)
+        },
         Err(e) => {
             println!("Database error: {}", e);
             error_handler::handle_error(e)
